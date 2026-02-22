@@ -1,5 +1,7 @@
 # Minimalistic Notes App
 
+Preview of app - https://minimalist-notes--saif224q.replit.app/
+
 ## Overview
 The Minimalistic Notes App is designed to provide users with a simple and effective way to take notes and manage their thoughts. The application focuses on delivering a user-friendly interface and essential features that allow users to record, edit, and delete notes with ease, minimizing distractions and enhancing productivity.
 
