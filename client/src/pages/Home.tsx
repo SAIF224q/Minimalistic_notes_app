@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNotes } from "@/lib/NoteContext";
 import { useSettings } from "@/lib/SettingsContext";
-import { Plus, Trash2, Moon, Sun, Type, Menu } from "lucide-react";
+import { Plus, Trash2, Moon, Sun, Type, Menu, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -34,6 +34,35 @@ export default function Home() {
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (activeNoteId) updateNote(activeNoteId, { content: e.target.value });
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!activeNote) return;
+    // @ts-ignore
+    const html2pdfModule = await import("html2pdf.js");
+    const html2pdf = html2pdfModule.default || html2pdfModule;
+    
+    const element = document.createElement("div");
+    const font = fontStyle === 'sans' ? 'Inter, sans-serif' : fontStyle === 'serif' ? 'Lora, serif' : 'JetBrains Mono, monospace';
+    const bg = theme === 'dark' ? '#0a0a0a' : '#ffffff';
+    const fg = theme === 'dark' ? '#f8f8f8' : '#171717';
+    
+    element.innerHTML = `
+      <div style="font-family: ${font}; color: ${fg}; background: ${bg}; padding: 40px; min-height: 100vh;">
+        <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1.5rem; white-space: pre-wrap; word-break: break-word;">${activeNote.title || 'Untitled'}</h1>
+        <div style="font-size: 1.125rem; line-height: 1.625; white-space: pre-wrap; word-break: break-word;">${activeNote.content}</div>
+      </div>
+    `;
+    
+    const opt = {
+      margin:       10,
+      filename:     `${activeNote.title || 'Note'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
   };
 
   return (
@@ -142,6 +171,20 @@ export default function Home() {
               <Menu className="h-4 w-4" />
             </Button>
           </div>
+          {activeNote && (
+            <div className="pointer-events-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDownloadPDF}
+                className="text-muted-foreground hover:text-foreground hover:bg-secondary/50 font-normal h-8"
+                data-testid="button-download-pdf"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download as PDF
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Editor Area */}
