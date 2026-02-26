@@ -10,20 +10,35 @@ interface SettingsContextType {
   setTheme: (theme: Theme) => void;
 }
 
+const FONT_STYLES: FontStyle[] = ["sans", "serif", "mono"];
+const THEMES: Theme[] = ["light", "dark"];
+
+const isFontStyle = (value: string | null): value is FontStyle => {
+  return value !== null && FONT_STYLES.includes(value as FontStyle);
+};
+
+const isTheme = (value: string | null): value is Theme => {
+  return value !== null && THEMES.includes(value as Theme);
+};
+
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [fontStyle, setFontStyle] = useState<FontStyle>(() => {
-    return (localStorage.getItem("minimal-font") as FontStyle) || "sans";
+    const saved = localStorage.getItem("minimal-font");
+    return isFontStyle(saved) ? saved : "sans";
   });
-  
+
   const [theme, setTheme] = useState<Theme>(() => {
-    return (localStorage.getItem("minimal-theme") as Theme) || "light";
+    const saved = localStorage.getItem("minimal-theme");
+    return isTheme(saved) ? saved : "light";
   });
 
   useEffect(() => {
     localStorage.setItem("minimal-font", fontStyle);
-    document.body.className = `font-${fontStyle}-style`;
+
+    document.body.classList.remove("font-sans-style", "font-serif-style", "font-mono-style");
+    document.body.classList.add(`font-${fontStyle}-style`);
   }, [fontStyle]);
 
   useEffect(() => {

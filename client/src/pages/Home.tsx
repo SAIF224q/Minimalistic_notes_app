@@ -5,6 +5,10 @@ import { Plus, Trash2, Moon, Sun, Type, Menu, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+const sanitizeFilename = (value: string) => {
+  return value.replace(/[\\/:*?"<>|]+/g, "_").trim() || "Note";
+};
+
 export default function Home() {
   const { notes, activeNoteId, setActiveNote, addNote, updateNote, deleteNote } = useNotes();
   const { theme, setTheme, fontStyle, setFontStyle } = useSettings();
@@ -41,27 +45,52 @@ export default function Home() {
     // @ts-ignore
     const html2pdfModule = await import("html2pdf.js");
     const html2pdf = html2pdfModule.default || html2pdfModule;
-    
+
     const element = document.createElement("div");
-    const font = fontStyle === 'sans' ? 'Inter, sans-serif' : fontStyle === 'serif' ? 'Lora, serif' : 'JetBrains Mono, monospace';
-    const bg = theme === 'dark' ? '#0a0a0a' : '#ffffff';
-    const fg = theme === 'dark' ? '#f8f8f8' : '#171717';
-    
-    element.innerHTML = `
-      <div style="font-family: ${font}; color: ${fg}; background: ${bg}; padding: 40px; min-height: 100vh;">
-        <h1 style="font-size: 2.25rem; font-weight: 700; margin-bottom: 1.5rem; white-space: pre-wrap; word-break: break-word;">${activeNote.title || 'Untitled'}</h1>
-        <div style="font-size: 1.125rem; line-height: 1.625; white-space: pre-wrap; word-break: break-word;">${activeNote.content}</div>
-      </div>
-    `;
-    
+    const font = fontStyle === "sans" ? "Inter, sans-serif" : fontStyle === "serif" ? "Lora, serif" : "JetBrains Mono, monospace";
+    const bg = theme === "dark" ? "#0a0a0a" : "#ffffff";
+    const fg = theme === "dark" ? "#f8f8f8" : "#171717";
+
+    const wrapper = document.createElement("div");
+    Object.assign(wrapper.style, {
+      fontFamily: font,
+      color: fg,
+      background: bg,
+      padding: "40px",
+      minHeight: "100vh",
+    });
+
+    const title = document.createElement("h1");
+    title.textContent = activeNote.title || "Untitled";
+    Object.assign(title.style, {
+      fontSize: "2.25rem",
+      fontWeight: "700",
+      marginBottom: "1.5rem",
+      whiteSpace: "pre-wrap",
+      wordBreak: "break-word",
+    });
+
+    const content = document.createElement("div");
+    content.textContent = activeNote.content;
+    Object.assign(content.style, {
+      fontSize: "1.125rem",
+      lineHeight: "1.625",
+      whiteSpace: "pre-wrap",
+      wordBreak: "break-word",
+    });
+
+    wrapper.appendChild(title);
+    wrapper.appendChild(content);
+    element.appendChild(wrapper);
+
     const opt = {
-      margin:       10,
-      filename:     `${activeNote.title || 'Note'}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      margin: 10,
+      filename: `${sanitizeFilename(activeNote.title || "Note")}.pdf`,
+      image: { type: "jpeg" as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm" as const, format: "a4" as const, orientation: "portrait" as const },
     };
-    
+
     html2pdf().set(opt).from(element).save();
   };
 

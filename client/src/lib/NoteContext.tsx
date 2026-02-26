@@ -27,7 +27,7 @@ export function NoteProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {}
     return [];
   });
-  
+
   const [activeNoteId, setActiveNote] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,18 +42,30 @@ export function NoteProvider({ children }: { children: React.ReactNode }) {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    setNotes([newNote, ...notes]);
+    setNotes((prev) => [newNote, ...prev]);
     setActiveNote(newNote.id);
   };
 
   const updateNote = (id: string, updates: Partial<Note>) => {
-    setNotes(notes.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n)));
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n)));
   };
 
   const deleteNote = (id: string) => {
-    setNotes(notes.filter((n) => n.id !== id));
+    let nextActiveId: string | null = null;
+
+    setNotes((prev) => {
+      const index = prev.findIndex((n) => n.id === id);
+      const remaining = prev.filter((n) => n.id !== id);
+
+      if (activeNoteId === id && index !== -1) {
+        nextActiveId = remaining[index]?.id ?? remaining[index - 1]?.id ?? null;
+      }
+
+      return remaining;
+    });
+
     if (activeNoteId === id) {
-      setActiveNote(null);
+      setActiveNote(nextActiveId);
     }
   };
 
